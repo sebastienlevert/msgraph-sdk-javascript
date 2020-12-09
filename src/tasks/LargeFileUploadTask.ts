@@ -235,7 +235,7 @@ export class LargeFileUploadTask {
 
 				const response = await GraphResponseHandler.getResponse(rawresponse);
 
-				if (rawresponse.status && (rawresponse.status === 201 || (rawresponse.status === 200 && response["id"]))) {
+				if (rawresponse.status && (rawresponse.status === 201 || (rawresponse.status === 200 && response.id))) {
 					return response ? response : rawresponse;
 				} else {
 					const res: UploadStatusResponse = {
@@ -246,7 +246,7 @@ export class LargeFileUploadTask {
 					this.updateTaskStatus(res);
 				}
 
-				//add if error
+				// add if error
 			}
 		} catch (err) {
 			throw err;

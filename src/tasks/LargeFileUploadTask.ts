@@ -9,8 +9,10 @@
  * @module LargeFileUploadTask
  */
 
+import { GraphResponseHandler } from "../GraphResponseHandler";
 import { Client } from "../index";
 import { Range } from "../Range";
+import { ResponseType } from "../ResponseType";
 
 /**
  * @interface
@@ -181,6 +183,7 @@ export class LargeFileUploadTask {
 	 */
 	private updateTaskStatus(response: UploadStatusResponse): void {
 		this.uploadSession.expiry = new Date(response.expirationDateTime);
+		const range = response.nextExpectedRanges;
 		this.nextRange = this.parseRange(response.nextExpectedRanges);
 	}
 
@@ -228,19 +231,38 @@ export class LargeFileUploadTask {
 					throw err;
 				}
 				const fileSlice = this.sliceFile(nextRange);
-				const response = await this.uploadSlice(fileSlice, nextRange, this.file.size);
-				// Upon completion of upload process incase of onedrive, driveItem is returned, which contains id
-				if (response.id !== undefined) {
-					return response;
+				const rawresponse: Response = await this.uploadSlice(fileSlice, nextRange, this.file.size, ResponseType.RAW);
+
+				const response = await GraphResponseHandler.getResponse(rawresponse);
+
+				if (rawresponse.status && (rawresponse.status === 201 || (rawresponse.status === 200 && response["id"]))) {
+					return response ? response : rawresponse;
 				} else {
-					this.updateTaskStatus(response);
+					const res: UploadStatusResponse = {
+						expirationDateTime: response.expirationDateTime,
+						nextExpectedRanges: response.NextExpectedRanges || response.nextExpectedRanges,
+					};
+
+					this.updateTaskStatus(res);
 				}
+
+				//add if error
 			}
 		} catch (err) {
 			throw err;
 		}
 	}
 
+	// private getResponseBody(rawresponse:ResponseType):any{
+	// 	const contentType = rawresponse.headers.get("Content-type");
+	// 	if (contentType !== null) {
+	// 		console.log("content-type");
+	// 		const mimeType = contentType.split(";")[0];
+	// 		if (mimeType === "application/json") {
+	// 			response = await rawresponse.json();
+	// 		}
+	// 	}
+	// }
 	/**
 	 * @public
 	 * @async
@@ -249,15 +271,20 @@ export class LargeFileUploadTask {
 	 * @param {Range} range - The range value
 	 * @param {number} totalSize - The total size of a complete file
 	 */
-	public async uploadSlice(fileSlice: ArrayBuffer | Blob | File, range: Range, totalSize: number): Promise<any> {
+	public async uploadSlice(fileSlice: ArrayBuffer | Blob | File, range: Range, totalSize: number, responseType?: ResponseType): Promise<any> {
 		try {
-			return await this.client
+			let request = this.client
 				.api(this.uploadSession.url)
+				.responseType(ResponseType.RAW)
 				.headers({
 					"Content-Length": `${range.maxValue - range.minValue + 1}`,
 					"Content-Range": `bytes ${range.minValue}-${range.maxValue}/${totalSize}`,
-				})
-				.put(fileSlice);
+				});
+
+			if (responseType) {
+				request = request.responseType(responseType);
+			}
+			return await request.put(fileSlice);
 		} catch (err) {
 			throw err;
 		}

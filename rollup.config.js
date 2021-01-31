@@ -1,8 +1,14 @@
 import { terser } from "rollup-plugin-terser";
-import resolve from "rollup-plugin-node-resolve";
-import babel from "rollup-plugin-babel";
-import commonjs from "rollup-plugin-commonjs";
+import resolve from "@rollup/plugin-node-resolve";
+import babel from "@rollup/plugin-babel";
+import commonjs from "@rollup/plugin-commonjs";
 
+const copyRight = `/**
+* -------------------------------------------------------------------------------------------
+* Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.
+* See License in the project root for license information.
+* -------------------------------------------------------------------------------------------
+*/`;
 const config = [
 	{
 		input: ["lib/es/src/browser/index.js"],
@@ -11,7 +17,15 @@ const config = [
 			format: "es",
 			name: "MicrosoftGraph",
 		},
-		plugins: [resolve(), terser()],
+		plugins: [
+			resolve(),
+			terser({
+				format: {
+					comments: false,
+					preamble: copyRight,
+				},
+			}),
+		],
 	},
 	{
 		input: ["lib/es/src/browser/index.js"],
@@ -23,11 +37,16 @@ const config = [
 		plugins: [
 			resolve(),
 			babel({
-				runtimeHelpers: true,
+				babelHelpers: "runtime",
 				exclude: "node_modules/**",
 			}),
 			commonjs({ include: "node_modules/**" }),
-			terser(),
+			terser({
+				format: {
+					comments: false,
+					preamble: copyRight,
+				},
+			}),
 		],
 	},
 ];

@@ -71,6 +71,8 @@ export class TokenCredentialAuthenticationProvider implements AuthenticationProv
 			throw error;
 		}
 		const response = await this.tokenCredential.getToken(scopes, this.authenticationProviderOptions.getTokenoptions);
+		console.log(response);
+		console.log(response.token);
 		if (response) {
 			return response.token;
 		}

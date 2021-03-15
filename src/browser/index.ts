@@ -39,6 +39,5 @@ export * from "../IContext";
 export * from "../IFetchOptions";
 export * from "../IGraphRequestCallback";
 export * from "../IOptions";
-export * from "./ImplicitMSALAuthenticationProvider";
 export * from "../authentication/msal/MSALAuthenticationProviderOptions";
 export * from "../ResponseType";

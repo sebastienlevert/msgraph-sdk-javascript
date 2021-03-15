@@ -15,13 +15,14 @@ const init = async () => {
 			redirectUri: "http://localhost:8080",
 		},
 	};
-
+	var tokenCred = new sample.Sample();
+	var auth = new MicrosoftGraph.TokenCredentialAuthProvider.TokenCredentialAuthenticationProvider(tokenCred, { scopes: scopes });
 	var msalApplication = new Msal.UserAgentApplication(msalConfig);
-	const msalOptions = new MicrosoftGraph.MSALAuthenticationProviderOptions(scopes);
-	const msalProvider = new MicrosoftGraph.ImplicitMSALAuthenticationProvider(msalApplication, msalOptions);
+	const msalOptions = new ms.MSALAuthenticationProviderOptions(scopes);
+	const msalProvider = new ms.ImplicitMSALAuthenticationProvider(msalApplication, msalOptions);
 	client = MicrosoftGraph.Client.initWithMiddleware({
 		debugLogging: true,
-		authProvider: msalProvider,
+		authProvider: auth,
 	});
 
 	bindEvents();

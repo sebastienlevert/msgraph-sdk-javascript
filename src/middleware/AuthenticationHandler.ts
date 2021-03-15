@@ -62,6 +62,7 @@ export class AuthenticationHandler implements Middleware {
 	 */
 	public async execute(context: Context): Promise<void> {
 		try {
+			console.log("here here");
 			let options: AuthenticationHandlerOptions;
 			if (context.middlewareControl instanceof MiddlewareControl) {
 				options = context.middlewareControl.getMiddlewareOptions(AuthenticationHandlerOptions) as AuthenticationHandlerOptions;
@@ -77,6 +78,7 @@ export class AuthenticationHandler implements Middleware {
 			}
 			const token: string = await authenticationProvider.getAccessToken(authenticationProviderOptions);
 			const bearerKey: string = `Bearer ${token}`;
+			console.log(token);
 			appendRequestHeader(context.request, context.options, AuthenticationHandler.AUTHORIZATION_HEADER, bearerKey);
 			TelemetryHandlerOptions.updateFeatureUsageFlag(context, FeatureUsageFlag.AUTHENTICATION_HANDLER_ENABLED);
 			return await this.nextMiddleware.execute(context);
